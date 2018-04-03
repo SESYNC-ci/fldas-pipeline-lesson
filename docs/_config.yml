@@ -1,15 +1,22 @@
 # Site
 
-title:
+title: Pipelines for Online Data
+subtitle: USGS FEWS NET Data Portal
 handouts:
-tag:
-lesson:
-instructor:
+ - worksheet.ipynb
+ - data/Aqueduct_river_basins_LIMPOPO
+ - data/README.md
+tag: v0.0
+lesson: 7
+instructor: Ian Carroll
 authors:
+ - Ian Carroll
 
 # Slides
 
 slide_sorter:
+ - intro
+ - dap
 
 #####################################
 # Only modify content above or risk #
