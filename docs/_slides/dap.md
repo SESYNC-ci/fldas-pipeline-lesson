@@ -211,7 +211,7 @@ plt.imshow(data[0, :, :])
 ~~~
 {:.input}
 ~~~
-Out[1]: <matplotlib.image.AxesImage at 0x7f8400695d30>
+Out[1]: <matplotlib.image.AxesImage at 0x7f3bbae10278>
 ~~~
 {:.output}
 
@@ -336,16 +336,27 @@ with raster(varname + '.tif') as r:
     show((r, 1), ax = ax)
 basin.plot(ax = ax,
     color='none', edgecolor = 'black')
-fig
 ~~~
 {:.text-document title="{{ site.handouts[0] }}"}
 
 ~~~
-Out[1]: <matplotlib.figure.Figure at 0x7f83f4038908>
+Out[1]: <matplotlib.axes._subplots.AxesSubplot at 0x7f3b98fd2400>
 ~~~
 {:.output}
 
 ![plot of ../images/dap_figure17_1.png]({{ site.baseurl }}/images/dap_figure17_1.png)
+
+
+~~~python
+fig
+~~~
+{:.input}
+~~~
+Out[1]: <matplotlib.figure.Figure at 0x7f3bac04b828>
+~~~
+{:.output}
+
+
 
 ===
 
@@ -412,11 +423,11 @@ show(basin)
 ~~~
 {:.input}
 ~~~
-Out[1]: <matplotlib.axes._subplots.AxesSubplot at 0x7f8400704518>
+Out[1]: <matplotlib.axes._subplots.AxesSubplot at 0x7f3bbadc2c18>
 ~~~
 {:.output}
 
-![plot of ../images/dap_figure21_1.png]({{ site.baseurl }}/images/dap_figure21_1.png)
+![plot of ../images/dap_figure22_1.png]({{ site.baseurl }}/images/dap_figure22_1.png)
 
 ===
 
@@ -447,11 +458,11 @@ show(var)
 {:.text-document title="{{ site.handouts[0] }}"}
 
 ~~~
-Out[1]: <matplotlib.axes._subplots.AxesSubplot at 0x7f83d1f560b8>
+Out[1]: <matplotlib.axes._subplots.AxesSubplot at 0x7f3b8c67de48>
 ~~~
 {:.output}
 
-![plot of ../images/dap_figure23_1.png]({{ site.baseurl }}/images/dap_figure23_1.png)
+![plot of ../images/dap_figure24_1.png]({{ site.baseurl }}/images/dap_figure24_1.png)
 
 ===
 
@@ -500,6 +511,8 @@ while True:
     # increment month and year
     mo = (mo + 1) % 12
     yr = yr + 1 if mo == 0 else yr
+
+basin_ts.to_pickle('basin_ts.pickle')
 ~~~
 {:.text-document title="{{ site.handouts[0] }}"}
 
@@ -516,14 +529,13 @@ Plot a simple bar chart to see how soil moisture anomolies have varied between m
 ~~~python
 basin_ts.plot.bar(color = 'b')
 ~~~
-{:.text-document title="{{ site.handouts[0] }}"}
-
+{:.input}
 ~~~
-Out[1]: <matplotlib.axes._subplots.AxesSubplot at 0x7f83d1ecaac8>
+Out[1]: <matplotlib.axes._subplots.AxesSubplot at 0x7f3b8c5f2208>
 ~~~
 {:.output}
 
-![plot of ../images/dap_figure26_1.png]({{ site.baseurl }}/images/dap_figure26_1.png)
+![plot of ../images/dap_figure27_1.png]({{ site.baseurl }}/images/dap_figure27_1.png)
 
 [GES DISC]: https://disc.sci.gsfc.nasa.gov
 [EARTHDATA]: https://earthdata.nasa.gov

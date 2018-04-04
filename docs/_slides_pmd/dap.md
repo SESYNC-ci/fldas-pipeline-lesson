@@ -241,6 +241,9 @@ with raster(varname + '.tif') as r:
     show((r, 1), ax = ax)
 basin.plot(ax = ax,
     color='none', edgecolor = 'black')
+```
+
+```python
 fig
 ```
 
@@ -358,7 +361,9 @@ while True:
     
     # increment month and year
     mo = (mo + 1) % 12
-    yr = yr + 1 if mo == 0 else yr    
+    yr = yr + 1 if mo == 0 else yr
+
+basin_ts.to_pickle('basin_ts.pickle')
 ```
 
 ```{python, echo = False}
@@ -370,7 +375,7 @@ basin_ts = pd.read_pickle('basin_ts.pickle')
 
 Plot a simple bar chart to see how soil moisture anomolies have varied between months over the past couple years.
 
-```{python, title = "{{ site.handouts[0] }}"}
+```python
 basin_ts.plot.bar(color = 'b')
 ```
 
