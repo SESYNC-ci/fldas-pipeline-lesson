@@ -9,7 +9,7 @@ The [NOAA Climate Prediction Center](http://www.cpc.ncep.noaa.gov/) provides for
   - [Africa]
     - [Weekly Hazards for USAID/FEWS]
 
-In the report dated March 29 – April 4, 2018, moisture deficits shown for regions of southern Africa and Madagascar are inferred from regularly updated land surface models. The NASA program that maintains those product, the Famine Early Warning Systems
+In the report dated March 29 – April 4, 2018, moisture deficits shown for regions of southern Africa and Madagascar are inferred from regularly updated land surface models. The NASA program that maintains those products, the Famine Early Warning Systems
 Network Land Data Assimilation System (FLDAS), also distributes them through the [EARTHDATA] portal.
 {:.notes}
 
@@ -17,8 +17,8 @@ Network Land Data Assimilation System (FLDAS), also distributes them through the
 
 The latest report suggests trouble in the [Limpopo basin](http://riverbasins.wateractionhub.org/).
 
-![]({{ site.baseurl }}/images/limpopo.JPG){:width="60%"}
-Credit: [River Awareness Kit](http://www.limpopo.riverawarenesskit.org/LIMPOPORAK_COM/EN/RIVER/SUB_BASIN_SUMMARIES.HTM)
+![]({{ site.baseurl }}/images/limpopo.JPG){:width="60%"}  
+*Credit: [River Awareness Kit](http://www.limpopo.riverawarenesskit.org/LIMPOPORAK_COM/EN/RIVER/SUB_BASIN_SUMMARIES.HTM)*
 {:.captioned}
 
 ===
@@ -27,23 +27,25 @@ Credit: [River Awareness Kit](http://www.limpopo.riverawarenesskit.org/LIMPOPORA
 
 The NASA EARTHDATA site provides web access to the Earth Observing System Data and Information System (EOSDIS), which distributes products from multiple missions to users.
 
-=== 
+1. Register for an Earthdata Login.
+1. Use the following in a terminal to create a "~/.netrc" file:
 
-Register for an Earthdata Login. Use the following in a terminal to create a "~/.netrc" file:
+===
 
-```bash
-echo "machine urs.earthdata.nasa.gov login ... password ..." > ~/.netrc
+
+~~~python
+echo "machine urs.earthdata.nasa.gov" > ~/.netrc
+echo "login ... " >> ~/.netrc
+echo "password ..." >> ~/.netrc
 chmod 600 ~/.netrc
-```
+~~~
+{:.input}
+
 
 ===
 
-Search for "FLDAS" datasets, can you find a "link to the data"? The more comprehensive the data portal, the more opaque the interface.
-
-The data archivers (the DAACs) each provide their own portals for the data they archive, with more specific access instructions application.
+Search for "FLDAS" datasets. Can you find a link to the data? The more comprehensive the data portal, the more opaque the interface. The data archivers (the DAACs) each provide their own portals for the data they archive, with more specific access instructions application.
 {:.notes}
-
-===
 
 Each DAAC requires it's own "authorization" using your EARTHDATA login, described on the [User Registration](https://disc.sci.gsfc.nasa.gov/data-access) help page.
 
@@ -79,19 +81,21 @@ dap = 'https://hydro1.gesdisc.eosdis.nasa.gov/opendap/hyrax/FLDAS/'
 resource = 'FLDAS_NOAH01_C_SA_MA.001/2013/FLDAS_NOAH01_C_SA_MA.ANOM201301.001.nc'
 url = dap + resource
 ~~~
-{:.input}
+{:.text-document title="{{ site.handouts[0] }}"}
+
 
 
 ===
 
-Some portals, GES DISC is now, require authentication to access the data, whether you use the GUI or request it programatically.
+Some portals, GES DISC is one, require authentication to access the data, whether you use the GUI or request it programatically.
 
 
 ~~~python
 from netrc import netrc
 username, _, password = netrc().hosts['urs.earthdata.nasa.gov']
 ~~~
-{:.input}
+{:.text-document title="{{ site.handouts[0] }}"}
+
 
 
 ===
@@ -105,6 +109,13 @@ from pydap.cas.urs import setup_session
 
 session = setup_session(username, password, check_url = url)
 dataset = open_url(url, session = session)
+~~~
+{:.text-document title="{{ site.handouts[0] }}"}
+
+
+
+
+~~~python
 dataset.keys()
 ~~~
 {:.input}
@@ -125,7 +136,8 @@ varname = 'SoilMoi10_40cm_tavg'
 variable = dataset[varname]
 variable.shape
 ~~~
-{:.input}
+{:.text-document title="{{ site.handouts[0] }}"}
+
 ~~~
 Out[1]: (1, 443, 486)
 ~~~
@@ -183,10 +195,11 @@ The `dataset` and `variable` objects provide all the values and critical metadat
 
 ~~~python
 data = var.array.data
-dims = {k:v.data for k, v in var.maps.items()}
+dims = {k: v.data for k, v in var.maps.items()}
 nodata = dataset.attributes['NC_GLOBAL']['missing_value']
 ~~~
-{:.input}
+{:.text-document title="{{ site.handouts[0] }}"}
+
 
 
 ===
@@ -198,11 +211,11 @@ plt.imshow(data[0, :, :])
 ~~~
 {:.input}
 ~~~
-Out[1]: <matplotlib.image.AxesImage at 0x7f4bf1b92da0>
+Out[1]: <matplotlib.image.AxesImage at 0x7f8400695d30>
 ~~~
 {:.output}
 
-![]({{ site.baseurl }}/images/dap_figure8_1.png)\
+![plot of ../images/dap_figure10_1.png]({{ site.baseurl }}/images/dap_figure10_1.png)
 
 ===
 
@@ -217,7 +230,8 @@ import numpy as np
 data = np.flip(data, 1).astype('float32')
 nodata = data.dtype.type(nodata)
 ~~~
-{:.input}
+{:.text-document title="{{ site.handouts[0] }}"}
+
 
 
 ===
@@ -226,7 +240,7 @@ The [rasterio](){:.pylib} package provides an interface to GDAL/OGR and PROJ4 fo
 
 
 ~~~python
-import rasterio
+from rasterio import open as raster
 
 meta = {
     'driver': 'GTiff',
@@ -236,10 +250,11 @@ meta = {
     'width': data.shape[2],
     'nodata': nodata,
 }
-with rasterio.open(varname + '.tif', 'w', **meta) as r:
+with raster(varname + '.tif', 'w', **meta) as r:
     r.write(data[0, :, :], 1)
 ~~~
-{:.input}
+{:.text-document title="{{ site.handouts[0] }}"}
+
 
 
 ===
@@ -248,11 +263,12 @@ with rasterio.open(varname + '.tif', 'w', **meta) as r:
 ~~~python
 from rasterio.plot import show
 
-with rasterio.open(varname + '.tif') as r:
+with raster(varname + '.tif') as r:
     show(r.read(1, masked = True))
 ~~~
-{:.input}
-![]({{ site.baseurl }}/images/dap_figure11_1.png)\
+{:.text-document title="{{ site.handouts[0] }}"}
+
+![plot of ../images/dap_figure13_1.png]({{ site.baseurl }}/images/dap_figure13_1.png)
 
 ===
 
@@ -267,11 +283,12 @@ crs = CRS.from_epsg(4326) # a guess!
 attr = dataset.attributes['NC_GLOBAL']
 transform = from_origin(
     dims['lon'][0].item(), # west
-    dims['lat'][-1].item(), # north (on flipped Y axis)
+    dims['lat'][-1].item(), # north (flip!)
     attr['DX'], # xsize
     attr['DY']) # ysize
 ~~~
-{:.input}
+{:.text-document title="{{ site.handouts[0] }}"}
+
 
 
 ===
@@ -284,10 +301,11 @@ meta.update({
     'crs': crs,
     'transform': transform,
 })
-with rasterio.open(varname + '.tif', 'w', **meta) as r:
+with raster(varname + '.tif', 'w', **meta) as r:
     r.write(data[0, :, :], 1)
 ~~~
-{:.input}
+{:.text-document title="{{ site.handouts[0] }}"}
+
 
 
 ===
@@ -296,11 +314,12 @@ Now rasterio recognizes use the georeferencing when showing the image.
 
 
 ~~~python
-with rasterio.open(varname + '.tif') as r:
+with raster(varname + '.tif') as r:
     show((r, 1))
 ~~~
-{:.input}
-![]({{ site.baseurl }}/images/dap_figure14_1.png)\
+{:.text-document title="{{ site.handouts[0] }}"}
+
+![plot of ../images/dap_figure16_1.png]({{ site.baseurl }}/images/dap_figure16_1.png)
 
 ===
 
@@ -311,19 +330,22 @@ More importantly, we can overlay a shapefile in the same CRS to mask the Limpopo
 import geopandas as gpd
 fig, ax = plt.subplots()
 
-basin = gpd.read_file('/data/Aqueduct_river_basins_LIMPOPO')
-with rasterio.open(varname + '.tif') as r:
+basin = gpd.read_file(
+    '/data/Aqueduct_river_basins_LIMPOPO')
+with raster(varname + '.tif') as r:
     show((r, 1), ax = ax)
-basin.plot(ax = ax, color='none', edgecolor = 'black')
+basin.plot(ax = ax,
+    color='none', edgecolor = 'black')
 fig
 ~~~
-{:.input}
+{:.text-document title="{{ site.handouts[0] }}"}
+
 ~~~
-Out[1]: <matplotlib.figure.Figure at 0x7f4bcfdb5048>
+Out[1]: <matplotlib.figure.Figure at 0x7f83f4038908>
 ~~~
 {:.output}
 
-![]({{ site.baseurl }}/images/dap_figure15_1.png)\
+![plot of ../images/dap_figure17_1.png]({{ site.baseurl }}/images/dap_figure17_1.png)
 
 ===
 
@@ -338,14 +360,15 @@ But what is the subset? It is the window of the raster matching the extent of th
 
 ~~~python
 from rasterio.mask import mask
-from shapely import geometry
+from shapely.geometry import mapping
 
-feature = [geometry.mapping(g) for g in basin['geometry']]
-with rasterio.open(varname + '.tif') as r:
+feature = [mapping(g) for g in basin['geometry']]
+with raster(varname + '.tif') as r:
     masked, transform = mask(r, feature)
     meta = r.meta.copy()
 ~~~
-{:.input}
+{:.text-document title="{{ site.handouts[0] }}"}
+
 
 
 ===
@@ -354,10 +377,11 @@ Write the masked data to a new file, using the original metadata.
 
 
 ~~~python
-with rasterio.open(varname + '_basin.tif', 'w', **meta) as r:
+with raster(varname + '_basin.tif', 'w', **meta) as r:
     r.write(masked)
 ~~~
-{:.input}
+{:.text-document title="{{ site.handouts[0] }}"}
+
 
 
 ===
@@ -368,13 +392,14 @@ The file we just wrote will be the source of the critical information we need fo
 ~~~python
 from rasterio.windows import get_data_window
 
-with rasterio.open(varname + '_basin.tif') as r:
+with raster(varname + '_basin.tif') as r:
     var = r.read(1, masked = True)
 
 y, x = get_data_window(var)
 basin = var.mask[slice(*y), slice(*x)]
 ~~~
-{:.input}
+{:.text-document title="{{ site.handouts[0] }}"}
+
 
 
 ===
@@ -387,11 +412,11 @@ show(basin)
 ~~~
 {:.input}
 ~~~
-Out[1]: <matplotlib.axes._subplots.AxesSubplot at 0x7f4bc36d2588>
+Out[1]: <matplotlib.axes._subplots.AxesSubplot at 0x7f8400704518>
 ~~~
 {:.output}
 
-![]({{ site.baseurl }}/images/dap_figure19_1.png)\
+![plot of ../images/dap_figure21_1.png]({{ site.baseurl }}/images/dap_figure21_1.png)
 
 ===
 
@@ -419,13 +444,14 @@ y = variable.shape[1] - y[1], variable.shape[1] - y[0]
 var = variable[:, slice(*y), slice(*x)]
 show(var)
 ~~~
-{:.input}
+{:.text-document title="{{ site.handouts[0] }}"}
+
 ~~~
-Out[1]: <matplotlib.axes._subplots.AxesSubplot at 0x7f4bf1c01dd8>
+Out[1]: <matplotlib.axes._subplots.AxesSubplot at 0x7f83d1f560b8>
 ~~~
 {:.output}
 
-![]({{ site.baseurl }}/images/dap_figure21_1.png)\
+![plot of ../images/dap_figure23_1.png]({{ site.baseurl }}/images/dap_figure23_1.png)
 
 ===
 
@@ -445,32 +471,39 @@ Finally, we have everything we need to build a time series of basin means.
 from pandas import Series
 basin_ts = Series(index = [[],[]])
 
+name = 'FLDAS_NOAH01_C_SA_MA'
+resource = '{0}.001/{1}/{0}.ANOM{1}{2:02d}.001.nc'    
+
 yr = 2016
 mo = 0
 while True:
-    
-    name = 'FLDAS_NOAH01_C_SA_MA'
-    resource = '{0}.001/{1}/{0}.ANOM{1}{2:02d}.001.nc'    
+
+    # connect to resource
+    # for year and month
     url = dap + resource.format(name, yr, mo + 1)
     try:
-        dataset = open_url(url, session = session)
+        dataset = open_url(url,
+            session = session)
     except:
         break
     
-    # request data subset and store masked mean
+    # request data subset
+    # and store masked mean
     variable = dataset[varname]
     var = variable[:, slice(*y), slice(*x)]
+    data = np.flip(var.array.data, 1)
     data = np.ma.array(
-        np.flip(var.array.data, 1).astype('float32'),
+        data,
         mask = basin)
-    var_avg = data.mean()
-    basin_ts[yr, mo + 1] = var_avg
+    basin_ts[yr, mo + 1] = data.mean()
     
     # increment month and year
     mo = (mo + 1) % 12
     yr = yr + 1 if mo == 0 else yr
 ~~~
-{:.input}
+{:.text-document title="{{ site.handouts[0] }}"}
+
+
 
 
 
@@ -483,19 +516,14 @@ Plot a simple bar chart to see how soil moisture anomolies have varied between m
 ~~~python
 basin_ts.plot.bar(color = 'b')
 ~~~
-{:.input}
+{:.text-document title="{{ site.handouts[0] }}"}
+
 ~~~
-Out[1]: <matplotlib.axes._subplots.AxesSubplot at 0x7f4bc3380080>
+Out[1]: <matplotlib.axes._subplots.AxesSubplot at 0x7f83d1ecaac8>
 ~~~
 {:.output}
 
-![]({{ site.baseurl }}/images/dap_figure24_1.png)\
-
-===
-
-## Summary
-
-
+![plot of ../images/dap_figure26_1.png]({{ site.baseurl }}/images/dap_figure26_1.png)
 
 [GES DISC]: https://disc.sci.gsfc.nasa.gov
 [EARTHDATA]: https://earthdata.nasa.gov
