@@ -1,0 +1,428 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Pipelines for Online Data</title>
+<meta name="description" content="Access Land Data Assimilation System models with OPeNDAP.">
+<link rel="canonical" href="http://cyberhelp.sesync.org/fldas-pipeline-lesson/course/archive.html">
+<link rel="stylesheet" href="https://cdn.rawgit.com/sesync-ci/lesson-style/v1.3/docs/css/default.css">
+<link rel="stylesheet" href="https://cdn.rawgit.com/sesync-ci/lesson-style/v1.3/docs/css/static.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-MML-AM_CHTML" type="text/javascript"></script>
+
+  </head>
+  <body>
+    <div class="page-content">
+      <div class="wrapper">
+        
+        
+<h1 style="text-transform: none;" id="pipelines-for-online-data">Pipelines for Online Data</h1>
+
+<h2 style="text-transform: none;" id="usgs-fews-net-data-portal">USGS FEWS NET Data Portal</h2>
+
+<p>Lesson 7 with <em>Ian Carroll</em></p>
+
+<h2 id="contents">Contents</h2>
+
+<ul>
+  <li><a href="#/slides/intro">Objectives for this lesson</a></li>
+  <li><a href="#/slides/dap">Drought Monitoring</a></li>
+</ul>
+
+<hr />
+
+<p><a name="/slides/intro"></a></p>
+
+<h2 id="objectives-for-this-lesson">Objectives for this lesson</h2>
+
+<ul>
+  <li>Access data from a web service</li>
+  <li>Start a data “analysis” pipeline</li>
+  <li>Meet <a href="" class="pylib">rasterio</a>, for geospatial arrays</li>
+</ul>
+
+<h2 id="specific-achievements">Specific achievements</h2>
+
+<ul>
+  <li>Script aquistion from a NASA data portal</li>
+  <li>Get just the <em>data you need</em> with OPeNDAP</li>
+  <li>Mask rasters with shapefiles in Python</li>
+</ul>
+
+<p class="ToS"><a href="#/slides/intro">Top of Section</a></p>
+
+<hr />
+
+<p><a name="/slides/dap"></a></p>
+
+<h2 id="drought-monitoring">Drought Monitoring</h2>
+
+<p>The <a href="http://www.cpc.ncep.noaa.gov/">NOAA Climate Prediction Center</a> provides forecasts to assist USAIDs food security programs.</p>
+
+<ul>
+  <li><a href="http://www.cpc.ncep.noaa.gov/products/international/index.shtml">International Desks</a>
+    <ul>
+      <li><a href="http://www.cpc.ncep.noaa.gov/products/international/africa/africa.shtml">Africa</a>
+        <ul>
+          <li><a href="http://www.cpc.ncep.noaa.gov/products/international/africa/africa_hazard.pdf">Weekly Hazards for USAID/FEWS</a></li>
+        </ul>
+      </li>
+    </ul>
+  </li>
+</ul>
+
+<p class="notes">In the report dated March 29 – April 4, 2018, moisture deficits shown for regions of southern Africa and Madagascar are inferred from regularly updated land surface models. The NASA program that maintains those products, the Famine Early Warning Systems
+Network Land Data Assimilation System (FLDAS), also distributes them through the <a href="https://earthdata.nasa.gov">EARTHDATA</a> portal.</p>
+
+<p>The latest report suggests trouble in the <a href="http://riverbasins.wateractionhub.org/">Limpopo basin</a>.</p>
+
+<p class="captioned"><img src="/fldas-pipeline-lesson/images/limpopo.JPG" alt="" width="60%" /><br />
+<em>Credit: <a href="http://www.limpopo.riverawarenesskit.org/LIMPOPORAK_COM/EN/RIVER/SUB_BASIN_SUMMARIES.HTM">River Awareness Kit</a></em></p>
+
+<h2 id="earthdata">EARTHDATA</h2>
+
+<p>The NASA EARTHDATA site provides web access to the Earth Observing System Data and Information System (EOSDIS), which distributes products from multiple missions to users.</p>
+
+<ol>
+  <li>Register for an Earthdata Login.</li>
+  <li>Use the following in a terminal to create a “~/.netrc” file:</li>
+</ol>
+
+<div class="language-python input highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">echo</span> <span class="s">"machine urs.earthdata.nasa.gov"</span> <span class="o">&gt;</span> <span class="o">~/.</span><span class="n">netrc</span>
+<span class="n">echo</span> <span class="s">"login ... "</span> <span class="o">&gt;&gt;</span> <span class="o">~/.</span><span class="n">netrc</span>
+<span class="n">echo</span> <span class="s">"password ..."</span> <span class="o">&gt;&gt;</span> <span class="o">~/.</span><span class="n">netrc</span>
+<span class="n">chmod</span> <span class="mi">600</span> <span class="o">~/.</span><span class="n">netrc</span>
+</code></pre></div></div>
+
+<p class="notes">Search for “FLDAS” datasets. Can you find a link to the data? The more comprehensive the data portal, the more opaque the interface. The data archivers (the DAACs) each provide their own portals for the data they archive, with more specific access instructions application.</p>
+
+<p>Each DAAC requires it’s own “authorization” using your EARTHDATA login, described on the <a href="https://disc.sci.gsfc.nasa.gov/data-access">User Registration</a> help page.</p>
+
+<h2 id="ges-disc">GES DISC</h2>
+
+<p>Narrow down the FLDAS datasets within the <a href="https://disc.sci.gsfc.nasa.gov/">GES DISC</a>.</p>
+
+<p>Filter to:</p>
+
+<ul>
+  <li>0.1 x 0.1 degree</li>
+  <li>Monthly</li>
+</ul>
+
+<p>Select the <a href="https://disc.sci.gsfc.nasa.gov/datasets/FLDAS_NOAH01_C_SA_MA_V001/summary?keywords=fldas">Anomaly data for Southern Africa modeled with the Noah LSM</a>.</p>
+
+<p>The GES DISC portal provides large temporal and spatial extents. We have established the narrower task of investigating evidence of drought in the Limpopo basin.</p>
+
+<ul>
+  <li>Use the GUI to subset the resource (good once).</li>
+  <li>Script data aquistion for a reproducible and reusable pipeline.</li>
+</ul>
+
+<h2 id="opendap-serverclient">OPeNDAP Server/Client</h2>
+
+<p>The GES DISC provides access through a web service called OPeNDAP. The OPenDAP server is listening for requests at a URL, just like a website server.</p>
+
+<div class="language-python text-document highlighter-rouge" title="worksheet-7.ipynb"><div class="highlight"><pre class="highlight"><code><span class="n">dap</span> <span class="o">=</span> <span class="s">'https://hydro1.gesdisc.eosdis.nasa.gov/opendap/hyrax/FLDAS/'</span>
+<span class="n">resource</span> <span class="o">=</span> <span class="s">'FLDAS_NOAH01_C_SA_MA.001/2013/FLDAS_NOAH01_C_SA_MA.ANOM201301.001.nc'</span>
+<span class="n">url</span> <span class="o">=</span> <span class="n">dap</span> <span class="o">+</span> <span class="n">resource</span>
+</code></pre></div></div>
+
+<p>Some portals, GES DISC is one, require authentication to access the data, whether you use the GUI or request it programatically.</p>
+
+<div class="language-python text-document highlighter-rouge" title="worksheet-7.ipynb"><div class="highlight"><pre class="highlight"><code><span class="kn">from</span> <span class="nn">netrc</span> <span class="kn">import</span> <span class="n">netrc</span>
+<span class="n">username</span><span class="p">,</span> <span class="n">_</span><span class="p">,</span> <span class="n">password</span> <span class="o">=</span> <span class="n">netrc</span><span class="p">()</span><span class="o">.</span><span class="n">hosts</span><span class="p">[</span><span class="s">'urs.earthdata.nasa.gov'</span><span class="p">]</span>
+</code></pre></div></div>
+
+<p>The OPeNDAP server’s response is not a website. We need a OPeNDAP client to handle the response.</p>
+
+<div class="language-python text-document highlighter-rouge" title="worksheet-7.ipynb"><div class="highlight"><pre class="highlight"><code><span class="kn">from</span> <span class="nn">pydap.client</span> <span class="kn">import</span> <span class="n">open_url</span>
+<span class="kn">from</span> <span class="nn">pydap.cas.urs</span> <span class="kn">import</span> <span class="n">setup_session</span>
+
+<span class="n">session</span> <span class="o">=</span> <span class="n">setup_session</span><span class="p">(</span><span class="n">username</span><span class="p">,</span> <span class="n">password</span><span class="p">,</span> <span class="n">check_url</span> <span class="o">=</span> <span class="n">url</span><span class="p">)</span>
+<span class="n">dataset</span> <span class="o">=</span> <span class="n">open_url</span><span class="p">(</span><span class="n">url</span><span class="p">,</span> <span class="n">session</span> <span class="o">=</span> <span class="n">session</span><span class="p">)</span>
+</code></pre></div></div>
+
+<div class="language-python input highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">dataset</span><span class="o">.</span><span class="n">keys</span><span class="p">()</span>
+</code></pre></div></div>
+<div class="output highlighter-rouge"><div class="highlight"><pre class="highlight"><code>Out[1]: KeysView(&lt;DatasetType with children 'lon', 'lat', 'time', 'time_bnds', 'SoilMoi00_10cm_tavg', 'SoilMoi10_40cm_tavg', 'SoilMoi40_100cm_tavg', 'SoilMoi100_200cm_tavg', 'Evap_tavg', 'Rainf_f_tavg', 'Tair_f_tavg', 'Qtotal_tavg'&gt;)
+</code></pre></div></div>
+
+<p>Your client is ready to request variables from this dataset. All OPeNDAP data follows a standard data model (very similar to netCDF4 model) and is independent of how GES DISC stores the data.</p>
+
+<div class="language-python text-document highlighter-rouge" title="worksheet-7.ipynb"><div class="highlight"><pre class="highlight"><code><span class="n">varname</span> <span class="o">=</span> <span class="s">'SoilMoi10_40cm_tavg'</span>
+<span class="n">variable</span> <span class="o">=</span> <span class="n">dataset</span><span class="p">[</span><span class="n">varname</span><span class="p">]</span>
+<span class="n">variable</span><span class="o">.</span><span class="n">shape</span>
+</code></pre></div></div>
+
+<div class="output highlighter-rouge"><div class="highlight"><pre class="highlight"><code>Out[1]: (1, 443, 486)
+</code></pre></div></div>
+
+<p>The data array is transmitted along with the dimensions ordered as (bands, rows, columns). In this call, we get all bands (there’s only one), the first two rows, and the first three columns.</p>
+
+<div class="language-python input highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">variable</span><span class="p">[:,</span> <span class="p">:</span><span class="mi">2</span><span class="p">,</span> <span class="p">:</span><span class="mi">3</span><span class="p">]</span><span class="o">.</span><span class="n">data</span>
+</code></pre></div></div>
+<div class="output highlighter-rouge"><div class="highlight"><pre class="highlight"><code>Out[1]: 
+[array([[[-9999., -9999., -9999.],
+         [-9999., -9999., -9999.]]], dtype=float32),
+ array([ 11323.]),
+ array([-37.85, -37.75]),
+ array([ 6.05,  6.15,  6.25])]
+</code></pre></div></div>
+
+<p>The <code class="highlighter-rouge">variable.shape</code> is not huge, so get all the data. Our current objective is to figure out how to script the aquisition of a subset, and we don’t want to harass the server while we hack about.</p>
+
+<div class="language-python input highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">var</span> <span class="o">=</span> <span class="n">variable</span><span class="p">[:,</span> <span class="p">:,</span> <span class="p">:]</span>
+<span class="n">var</span><span class="p">[:,</span> <span class="p">:</span><span class="mi">2</span><span class="p">,</span> <span class="p">:</span><span class="mi">3</span><span class="p">]</span><span class="o">.</span><span class="n">data</span>
+</code></pre></div></div>
+<div class="output highlighter-rouge"><div class="highlight"><pre class="highlight"><code>Out[1]: 
+[array([[[-9999., -9999., -9999.],
+         [-9999., -9999., -9999.]]], dtype=float32),
+ array([ 11323.]),
+ array([-37.85, -37.75]),
+ array([ 6.05,  6.15,  6.25])]
+</code></pre></div></div>
+
+<p>The <code class="highlighter-rouge">dataset</code> and <code class="highlighter-rouge">variable</code> objects provide all the values and critical metadata.</p>
+
+<div class="language-python text-document highlighter-rouge" title="worksheet-7.ipynb"><div class="highlight"><pre class="highlight"><code><span class="n">data</span> <span class="o">=</span> <span class="n">var</span><span class="o">.</span><span class="n">array</span><span class="o">.</span><span class="n">data</span>
+<span class="n">dims</span> <span class="o">=</span> <span class="p">{</span><span class="n">k</span><span class="p">:</span> <span class="n">v</span><span class="o">.</span><span class="n">data</span> <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">var</span><span class="o">.</span><span class="n">maps</span><span class="o">.</span><span class="n">items</span><span class="p">()}</span>
+<span class="n">nodata</span> <span class="o">=</span> <span class="n">dataset</span><span class="o">.</span><span class="n">attributes</span><span class="p">[</span><span class="s">'NC_GLOBAL'</span><span class="p">][</span><span class="s">'missing_value'</span><span class="p">]</span>
+</code></pre></div></div>
+
+<div class="language-python input highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kn">import</span> <span class="nn">matplotlib.pyplot</span> <span class="k">as</span> <span class="n">plt</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">imshow</span><span class="p">(</span><span class="n">data</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="p">:,</span> <span class="p">:])</span>
+</code></pre></div></div>
+<div class="output highlighter-rouge"><div class="highlight"><pre class="highlight"><code>Out[1]: &lt;matplotlib.image.AxesImage at 0x7f3bbae10278&gt;
+</code></pre></div></div>
+
+<p><img src="/fldas-pipeline-lesson/images/dap_figure10_1.png" alt="plot of ../images/dap_figure10_1.png" /></p>
+
+<h2 id="data-alignment">Data Alignment</h2>
+
+<p>The <code class="highlighter-rouge">var.array.data</code> attribute is a <a href="" class="pylib">numpy</a> array, allowing for some needed adjustments.</p>
+
+<div class="language-python text-document highlighter-rouge" title="worksheet-7.ipynb"><div class="highlight"><pre class="highlight"><code><span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="n">np</span>
+
+<span class="n">data</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">flip</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="s">'float32'</span><span class="p">)</span>
+<span class="n">nodata</span> <span class="o">=</span> <span class="n">data</span><span class="o">.</span><span class="n">dtype</span><span class="o">.</span><span class="nb">type</span><span class="p">(</span><span class="n">nodata</span><span class="p">)</span>
+</code></pre></div></div>
+
+<p>The <a href="" class="pylib">rasterio</a> package provides an interface to GDAL/OGR and PROJ4 for georeferencing the numpy’s numerical arrays.</p>
+
+<div class="language-python text-document highlighter-rouge" title="worksheet-7.ipynb"><div class="highlight"><pre class="highlight"><code><span class="kn">from</span> <span class="nn">rasterio</span> <span class="kn">import</span> <span class="nb">open</span> <span class="k">as</span> <span class="n">raster</span>
+
+<span class="n">meta</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="s">'driver'</span><span class="p">:</span> <span class="s">'GTiff'</span><span class="p">,</span>
+    <span class="s">'dtype'</span><span class="p">:</span> <span class="n">data</span><span class="o">.</span><span class="n">dtype</span><span class="p">,</span>
+    <span class="s">'count'</span><span class="p">:</span> <span class="n">data</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span>
+    <span class="s">'height'</span><span class="p">:</span> <span class="n">data</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span>
+    <span class="s">'width'</span><span class="p">:</span> <span class="n">data</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">2</span><span class="p">],</span>
+    <span class="s">'nodata'</span><span class="p">:</span> <span class="n">nodata</span><span class="p">,</span>
+<span class="p">}</span>
+<span class="k">with</span> <span class="n">raster</span><span class="p">(</span><span class="n">varname</span> <span class="o">+</span> <span class="s">'.tif'</span><span class="p">,</span> <span class="s">'w'</span><span class="p">,</span> <span class="o">**</span><span class="n">meta</span><span class="p">)</span> <span class="k">as</span> <span class="n">r</span><span class="p">:</span>
+    <span class="n">r</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">data</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="p">:,</span> <span class="p">:],</span> <span class="mi">1</span><span class="p">)</span>
+</code></pre></div></div>
+
+<div class="language-python text-document highlighter-rouge" title="worksheet-7.ipynb"><div class="highlight"><pre class="highlight"><code><span class="kn">from</span> <span class="nn">rasterio.plot</span> <span class="kn">import</span> <span class="n">show</span>
+
+<span class="k">with</span> <span class="n">raster</span><span class="p">(</span><span class="n">varname</span> <span class="o">+</span> <span class="s">'.tif'</span><span class="p">)</span> <span class="k">as</span> <span class="n">r</span><span class="p">:</span>
+    <span class="n">show</span><span class="p">(</span><span class="n">r</span><span class="o">.</span><span class="n">read</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="n">masked</span> <span class="o">=</span> <span class="bp">True</span><span class="p">))</span>
+</code></pre></div></div>
+
+<p><img src="/fldas-pipeline-lesson/images/dap_figure13_1.png" alt="plot of ../images/dap_figure13_1.png" /></p>
+
+<p>The warnings arise from the lack of a CRS and extent, or more generally an affine transform.</p>
+
+<div class="language-python text-document highlighter-rouge" title="worksheet-7.ipynb"><div class="highlight"><pre class="highlight"><code><span class="kn">from</span> <span class="nn">rasterio.crs</span> <span class="kn">import</span> <span class="n">CRS</span>
+<span class="kn">from</span> <span class="nn">rasterio.transform</span> <span class="kn">import</span> <span class="n">from_origin</span>
+
+<span class="n">crs</span> <span class="o">=</span> <span class="n">CRS</span><span class="o">.</span><span class="n">from_epsg</span><span class="p">(</span><span class="mi">4326</span><span class="p">)</span> <span class="c"># a guess!</span>
+<span class="n">attr</span> <span class="o">=</span> <span class="n">dataset</span><span class="o">.</span><span class="n">attributes</span><span class="p">[</span><span class="s">'NC_GLOBAL'</span><span class="p">]</span>
+<span class="n">transform</span> <span class="o">=</span> <span class="n">from_origin</span><span class="p">(</span>
+    <span class="n">dims</span><span class="p">[</span><span class="s">'lon'</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">item</span><span class="p">(),</span> <span class="c"># west</span>
+    <span class="n">dims</span><span class="p">[</span><span class="s">'lat'</span><span class="p">][</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">item</span><span class="p">(),</span> <span class="c"># north (flip!)</span>
+    <span class="n">attr</span><span class="p">[</span><span class="s">'DX'</span><span class="p">],</span> <span class="c"># xsize</span>
+    <span class="n">attr</span><span class="p">[</span><span class="s">'DY'</span><span class="p">])</span> <span class="c"># ysize</span>
+</code></pre></div></div>
+
+<p>Update the metadata to include a CRS and the transform, then write to file.</p>
+
+<div class="language-python text-document highlighter-rouge" title="worksheet-7.ipynb"><div class="highlight"><pre class="highlight"><code><span class="n">meta</span><span class="o">.</span><span class="n">update</span><span class="p">({</span>
+    <span class="s">'crs'</span><span class="p">:</span> <span class="n">crs</span><span class="p">,</span>
+    <span class="s">'transform'</span><span class="p">:</span> <span class="n">transform</span><span class="p">,</span>
+<span class="p">})</span>
+<span class="k">with</span> <span class="n">raster</span><span class="p">(</span><span class="n">varname</span> <span class="o">+</span> <span class="s">'.tif'</span><span class="p">,</span> <span class="s">'w'</span><span class="p">,</span> <span class="o">**</span><span class="n">meta</span><span class="p">)</span> <span class="k">as</span> <span class="n">r</span><span class="p">:</span>
+    <span class="n">r</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">data</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="p">:,</span> <span class="p">:],</span> <span class="mi">1</span><span class="p">)</span>
+</code></pre></div></div>
+
+<p>Now rasterio recognizes use the georeferencing when showing the image.</p>
+
+<div class="language-python text-document highlighter-rouge" title="worksheet-7.ipynb"><div class="highlight"><pre class="highlight"><code><span class="k">with</span> <span class="n">raster</span><span class="p">(</span><span class="n">varname</span> <span class="o">+</span> <span class="s">'.tif'</span><span class="p">)</span> <span class="k">as</span> <span class="n">r</span><span class="p">:</span>
+    <span class="n">show</span><span class="p">((</span><span class="n">r</span><span class="p">,</span> <span class="mi">1</span><span class="p">))</span>
+</code></pre></div></div>
+
+<p><img src="/fldas-pipeline-lesson/images/dap_figure16_1.png" alt="plot of ../images/dap_figure16_1.png" /></p>
+
+<p>More importantly, we can overlay a shapefile in the same CRS to mask the Limpopo basin.</p>
+
+<div class="language-python text-document highlighter-rouge" title="worksheet-7.ipynb"><div class="highlight"><pre class="highlight"><code><span class="kn">import</span> <span class="nn">geopandas</span> <span class="k">as</span> <span class="n">gpd</span>
+<span class="n">fig</span><span class="p">,</span> <span class="n">ax</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">subplots</span><span class="p">()</span>
+
+<span class="n">basin</span> <span class="o">=</span> <span class="n">gpd</span><span class="o">.</span><span class="n">read_file</span><span class="p">(</span>
+    <span class="s">'/data/Aqueduct_river_basins_LIMPOPO'</span><span class="p">)</span>
+<span class="k">with</span> <span class="n">raster</span><span class="p">(</span><span class="n">varname</span> <span class="o">+</span> <span class="s">'.tif'</span><span class="p">)</span> <span class="k">as</span> <span class="n">r</span><span class="p">:</span>
+    <span class="n">show</span><span class="p">((</span><span class="n">r</span><span class="p">,</span> <span class="mi">1</span><span class="p">),</span> <span class="n">ax</span> <span class="o">=</span> <span class="n">ax</span><span class="p">)</span>
+<span class="n">basin</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">ax</span> <span class="o">=</span> <span class="n">ax</span><span class="p">,</span>
+    <span class="n">color</span><span class="o">=</span><span class="s">'none'</span><span class="p">,</span> <span class="n">edgecolor</span> <span class="o">=</span> <span class="s">'black'</span><span class="p">)</span>
+</code></pre></div></div>
+
+<div class="output highlighter-rouge"><div class="highlight"><pre class="highlight"><code>Out[1]: &lt;matplotlib.axes._subplots.AxesSubplot at 0x7f3b98fd2400&gt;
+</code></pre></div></div>
+
+<p><img src="/fldas-pipeline-lesson/images/dap_figure17_1.png" alt="plot of ../images/dap_figure17_1.png" /></p>
+
+<div class="language-python input highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">fig</span>
+</code></pre></div></div>
+<div class="output highlighter-rouge"><div class="highlight"><pre class="highlight"><code>Out[1]: &lt;matplotlib.figure.Figure at 0x7f3bac04b828&gt;
+</code></pre></div></div>
+
+<h2 id="subsetted-requests">Subsetted Requests</h2>
+
+<p>The OPeNDAP server allows us to subset the request for data, as opposed to requesting data and then subsetting. Create such a request by subsetting <code class="highlighter-rouge">variable</code>. Recall that <code class="highlighter-rouge">variable</code> is a connection to the server, not a <a href="" class="pylib">numpy</a> array.</p>
+
+<p>But what is the subset? It is the window of the raster matching the extent of the polygon. We also want to mask out any remaining pixels outisde the basin. The <code class="highlighter-rouge">mask()</code> utility will accomplish both.</p>
+
+<div class="language-python text-document highlighter-rouge" title="worksheet-7.ipynb"><div class="highlight"><pre class="highlight"><code><span class="kn">from</span> <span class="nn">rasterio.mask</span> <span class="kn">import</span> <span class="n">mask</span>
+<span class="kn">from</span> <span class="nn">shapely.geometry</span> <span class="kn">import</span> <span class="n">mapping</span>
+
+<span class="n">feature</span> <span class="o">=</span> <span class="p">[</span><span class="n">mapping</span><span class="p">(</span><span class="n">g</span><span class="p">)</span> <span class="k">for</span> <span class="n">g</span> <span class="ow">in</span> <span class="n">basin</span><span class="p">[</span><span class="s">'geometry'</span><span class="p">]]</span>
+<span class="k">with</span> <span class="n">raster</span><span class="p">(</span><span class="n">varname</span> <span class="o">+</span> <span class="s">'.tif'</span><span class="p">)</span> <span class="k">as</span> <span class="n">r</span><span class="p">:</span>
+    <span class="n">masked</span><span class="p">,</span> <span class="n">transform</span> <span class="o">=</span> <span class="n">mask</span><span class="p">(</span><span class="n">r</span><span class="p">,</span> <span class="n">feature</span><span class="p">)</span>
+    <span class="n">meta</span> <span class="o">=</span> <span class="n">r</span><span class="o">.</span><span class="n">meta</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+</code></pre></div></div>
+
+<p>Write the masked data to a new file, using the original metadata.</p>
+
+<div class="language-python text-document highlighter-rouge" title="worksheet-7.ipynb"><div class="highlight"><pre class="highlight"><code><span class="k">with</span> <span class="n">raster</span><span class="p">(</span><span class="n">varname</span> <span class="o">+</span> <span class="s">'_basin.tif'</span><span class="p">,</span> <span class="s">'w'</span><span class="p">,</span> <span class="o">**</span><span class="n">meta</span><span class="p">)</span> <span class="k">as</span> <span class="n">r</span><span class="p">:</span>
+    <span class="n">r</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">masked</span><span class="p">)</span>
+</code></pre></div></div>
+
+<p>The file we just wrote will be the source of the critical information we need for our pipeline: both the window around the basin and the explit mask around the basin.</p>
+
+<div class="language-python text-document highlighter-rouge" title="worksheet-7.ipynb"><div class="highlight"><pre class="highlight"><code><span class="kn">from</span> <span class="nn">rasterio.windows</span> <span class="kn">import</span> <span class="n">get_data_window</span>
+
+<span class="k">with</span> <span class="n">raster</span><span class="p">(</span><span class="n">varname</span> <span class="o">+</span> <span class="s">'_basin.tif'</span><span class="p">)</span> <span class="k">as</span> <span class="n">r</span><span class="p">:</span>
+    <span class="n">var</span> <span class="o">=</span> <span class="n">r</span><span class="o">.</span><span class="n">read</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="n">masked</span> <span class="o">=</span> <span class="bp">True</span><span class="p">)</span>
+
+<span class="n">y</span><span class="p">,</span> <span class="n">x</span> <span class="o">=</span> <span class="n">get_data_window</span><span class="p">(</span><span class="n">var</span><span class="p">)</span>
+<span class="n">basin</span> <span class="o">=</span> <span class="n">var</span><span class="o">.</span><span class="n">mask</span><span class="p">[</span><span class="nb">slice</span><span class="p">(</span><span class="o">*</span><span class="n">y</span><span class="p">),</span> <span class="nb">slice</span><span class="p">(</span><span class="o">*</span><span class="n">x</span><span class="p">)]</span>
+</code></pre></div></div>
+
+<p>Slicing the mask with <code class="highlighter-rouge">y</code> and <code class="highlighter-rouge">x</code> reduce the mask to same shape as the data subset we are going to request.</p>
+
+<div class="language-python input highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">show</span><span class="p">(</span><span class="n">basin</span><span class="p">)</span>
+</code></pre></div></div>
+<div class="output highlighter-rouge"><div class="highlight"><pre class="highlight"><code>Out[1]: &lt;matplotlib.axes._subplots.AxesSubplot at 0x7f3bbadc2c18&gt;
+</code></pre></div></div>
+
+<p><img src="/fldas-pipeline-lesson/images/dap_figure22_1.png" alt="plot of ../images/dap_figure22_1.png" /></p>
+
+<p>Statistics calculated on a masked variable refer only to the pixesl within the basin.</p>
+
+<div class="language-python input highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nb">type</span><span class="p">(</span><span class="n">var</span><span class="p">),</span> <span class="n">var</span><span class="o">.</span><span class="n">mean</span><span class="p">()</span>
+</code></pre></div></div>
+<div class="output highlighter-rouge"><div class="highlight"><pre class="highlight"><code>Out[1]: (numpy.ma.core.MaskedArray, 0.028327035785673998)
+</code></pre></div></div>
+
+<p>While the <code class="highlighter-rouge">x</code> and <code class="highlighter-rouge">y</code> variables provide the slices we want to request, don’t forget to acconut for flipping the y-axis.</p>
+
+<div class="language-python text-document highlighter-rouge" title="worksheet-7.ipynb"><div class="highlight"><pre class="highlight"><code><span class="n">y</span> <span class="o">=</span> <span class="n">variable</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">-</span> <span class="n">y</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">variable</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">-</span> <span class="n">y</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+<span class="n">var</span> <span class="o">=</span> <span class="n">variable</span><span class="p">[:,</span> <span class="nb">slice</span><span class="p">(</span><span class="o">*</span><span class="n">y</span><span class="p">),</span> <span class="nb">slice</span><span class="p">(</span><span class="o">*</span><span class="n">x</span><span class="p">)]</span>
+<span class="n">show</span><span class="p">(</span><span class="n">var</span><span class="p">)</span>
+</code></pre></div></div>
+
+<div class="output highlighter-rouge"><div class="highlight"><pre class="highlight"><code>Out[1]: &lt;matplotlib.axes._subplots.AxesSubplot at 0x7f3b8c67de48&gt;
+</code></pre></div></div>
+
+<p><img src="/fldas-pipeline-lesson/images/dap_figure24_1.png" alt="plot of ../images/dap_figure24_1.png" /></p>
+
+<h2 id="loop-though-time">Loop though Time</h2>
+
+<p>Finally, we have everything we need to build a time series of basin means.</p>
+
+<ol>
+  <li>a <code class="highlighter-rouge">session</code> to contact the server</li>
+  <li>a time-varying resource to request</li>
+  <li>a window to request with</li>
+  <li>a basin mask the same size as the window</li>
+</ol>
+
+<div class="language-python text-document highlighter-rouge" title="worksheet-7.ipynb"><div class="highlight"><pre class="highlight"><code><span class="kn">from</span> <span class="nn">pandas</span> <span class="kn">import</span> <span class="n">Series</span>
+<span class="n">basin_ts</span> <span class="o">=</span> <span class="n">Series</span><span class="p">(</span><span class="n">index</span> <span class="o">=</span> <span class="p">[[],[]])</span>
+
+<span class="n">name</span> <span class="o">=</span> <span class="s">'FLDAS_NOAH01_C_SA_MA'</span>
+<span class="n">resource</span> <span class="o">=</span> <span class="s">'{0}.001/{1}/{0}.ANOM{1}{2:02d}.001.nc'</span>    
+
+<span class="n">yr</span> <span class="o">=</span> <span class="mi">2016</span>
+<span class="n">mo</span> <span class="o">=</span> <span class="mi">0</span>
+<span class="k">while</span> <span class="bp">True</span><span class="p">:</span>
+
+    <span class="c"># connect to resource</span>
+    <span class="c"># for year and month</span>
+    <span class="n">url</span> <span class="o">=</span> <span class="n">dap</span> <span class="o">+</span> <span class="n">resource</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">yr</span><span class="p">,</span> <span class="n">mo</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">dataset</span> <span class="o">=</span> <span class="n">open_url</span><span class="p">(</span><span class="n">url</span><span class="p">,</span>
+            <span class="n">session</span> <span class="o">=</span> <span class="n">session</span><span class="p">)</span>
+    <span class="k">except</span><span class="p">:</span>
+        <span class="k">break</span>
+    
+    <span class="c"># request data subset</span>
+    <span class="c"># and store masked mean</span>
+    <span class="n">variable</span> <span class="o">=</span> <span class="n">dataset</span><span class="p">[</span><span class="n">varname</span><span class="p">]</span>
+    <span class="n">var</span> <span class="o">=</span> <span class="n">variable</span><span class="p">[:,</span> <span class="nb">slice</span><span class="p">(</span><span class="o">*</span><span class="n">y</span><span class="p">),</span> <span class="nb">slice</span><span class="p">(</span><span class="o">*</span><span class="n">x</span><span class="p">)]</span>
+    <span class="n">data</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">flip</span><span class="p">(</span><span class="n">var</span><span class="o">.</span><span class="n">array</span><span class="o">.</span><span class="n">data</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+    <span class="n">data</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">ma</span><span class="o">.</span><span class="n">array</span><span class="p">(</span>
+        <span class="n">data</span><span class="p">,</span>
+        <span class="n">mask</span> <span class="o">=</span> <span class="n">basin</span><span class="p">)</span>
+    <span class="n">basin_ts</span><span class="p">[</span><span class="n">yr</span><span class="p">,</span> <span class="n">mo</span> <span class="o">+</span> <span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="n">data</span><span class="o">.</span><span class="n">mean</span><span class="p">()</span>
+    
+    <span class="c"># increment month and year</span>
+    <span class="n">mo</span> <span class="o">=</span> <span class="p">(</span><span class="n">mo</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span> <span class="o">%</span> <span class="mi">12</span>
+    <span class="n">yr</span> <span class="o">=</span> <span class="n">yr</span> <span class="o">+</span> <span class="mi">1</span> <span class="k">if</span> <span class="n">mo</span> <span class="o">==</span> <span class="mi">0</span> <span class="k">else</span> <span class="n">yr</span>
+
+<span class="n">basin_ts</span><span class="o">.</span><span class="n">to_pickle</span><span class="p">(</span><span class="s">'basin_ts.pickle'</span><span class="p">)</span>
+</code></pre></div></div>
+
+<p>Plot a simple bar chart to see how soil moisture anomolies have varied between months over the past couple years.</p>
+
+<div class="language-python input highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">basin_ts</span><span class="o">.</span><span class="n">plot</span><span class="o">.</span><span class="n">bar</span><span class="p">(</span><span class="n">color</span> <span class="o">=</span> <span class="s">'b'</span><span class="p">)</span>
+</code></pre></div></div>
+<div class="output highlighter-rouge"><div class="highlight"><pre class="highlight"><code>Out[1]: &lt;matplotlib.axes._subplots.AxesSubplot at 0x7f3b8c5f2208&gt;
+</code></pre></div></div>
+
+<p><img src="/fldas-pipeline-lesson/images/dap_figure27_1.png" alt="plot of ../images/dap_figure27_1.png" /></p>
+
+<p class="ToS"><a href="#/slides/dap">Top of Section</a></p>
+
+<hr />
+
+
+
+      </div>
+    </div>
+  <script>
+ var collection = document.getElementsByClassName('rlib');
+ for (var i = 0; i < collection.length; i++) {
+     var a = collection[i];
+     a.href = 'https://cran.r-project.org/package=' + a.innerText;
+ };
+ var collection = document.getElementsByClassName('pylib');
+ for (var i = 0; i < collection.length; i++) {
+     var a = collection[i];
+     a.href = 'https://pypi.python.org/pypi/' + a.innerText;
+ };
+</script>
+
+  </body>
+</html>
