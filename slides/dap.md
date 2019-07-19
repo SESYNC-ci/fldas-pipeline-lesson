@@ -17,7 +17,7 @@ Network Land Data Assimilation System (FLDAS), also distributes them through the
 
 The latest report suggests trouble in the [Limpopo basin](http://riverbasins.wateractionhub.org/).
 
-![]({{ site.baseurl }}/images/limpopo.JPG){:width="60%"}  
+![]({% include asset.html path="images/limpopo.JPG" %}){:width="60%"}  
 *Credit: [River Awareness Kit](http://www.limpopo.riverawarenesskit.org/LIMPOPORAK_COM/EN/RIVER/SUB_BASIN_SUMMARIES.HTM)*
 {:.captioned}
 
@@ -72,7 +72,7 @@ The GES DISC portal provides large temporal and spatial extents. We have establi
 
 The GES DISC provides access through a web service called OPeNDAP. The OPenDAP server is listening for requests at a URL, just like a website server.
 
-```{python, title = "{{ site.handouts[0] }}"}
+```{python, title = "{{ site.data.lesson.handouts[0] }}"}
 dap = 'https://hydro1.gesdisc.eosdis.nasa.gov/opendap/hyrax/FLDAS/'
 resource = 'FLDAS_NOAH01_C_SA_MA.001/2013/FLDAS_NOAH01_C_SA_MA.ANOM201301.001.nc'
 url = dap + resource
@@ -82,7 +82,7 @@ url = dap + resource
 
 Some portals, GES DISC is one, require authentication to access the data, whether you use the GUI or request it programatically.
 
-```{python, title = "{{ site.handouts[0] }}"}
+```{python, title = "{{ site.data.lesson.handouts[0] }}"}
 from netrc import netrc
 username, _, password = netrc().hosts['urs.earthdata.nasa.gov']
 ```
@@ -91,7 +91,7 @@ username, _, password = netrc().hosts['urs.earthdata.nasa.gov']
 
 The OPeNDAP server's response is not a website. We need a OPeNDAP client to handle the response.
 
-```{python, title = "{{ site.handouts[0] }}"}
+```{python, title = "{{ site.data.lesson.handouts[0] }}"}
 from pydap.client import open_url
 from pydap.cas.urs import setup_session
 
@@ -107,7 +107,7 @@ dataset.keys()
 
 Your client is ready to request variables from this dataset. All OPeNDAP data follows a standard data model (very similar to netCDF4 model) and is independent of how GES DISC stores the data.
 
-```{python, title = "{{ site.handouts[0] }}"}
+```{python, title = "{{ site.data.lesson.handouts[0] }}"}
 varname = 'SoilMoi10_40cm_tavg'
 variable = dataset[varname]
 variable.shape
@@ -134,7 +134,7 @@ var[:, :2, :3].data
 
 The `dataset` and `variable` objects provide all the values and critical metadata.
 
-```{python, title = "{{ site.handouts[0] }}"}
+```{python, title = "{{ site.data.lesson.handouts[0] }}"}
 data = var.array.data
 dims = {k: v.data for k, v in var.maps.items()}
 nodata = dataset.attributes['NC_GLOBAL']['missing_value']
@@ -153,7 +153,7 @@ plt.imshow(data[0, :, :])
 
 The `var.array.data` attribute is a [numpy](){:.pylib} array, allowing for some needed adjustments.
 
-```{python, title = "{{ site.handouts[0] }}"}
+```{python, title = "{{ site.data.lesson.handouts[0] }}"}
 import numpy as np
 
 data = np.flip(data, 1).astype('float32')
@@ -164,7 +164,7 @@ nodata = data.dtype.type(nodata)
 
 The [rasterio](){:.pylib} package provides an interface to GDAL/OGR and PROJ4 for georeferencing the numpy's numerical arrays.
 
-```{python, title = "{{ site.handouts[0] }}"}
+```{python, title = "{{ site.data.lesson.handouts[0] }}"}
 from rasterio import open as raster
 
 meta = {
@@ -181,7 +181,7 @@ with raster(varname + '.tif', 'w', **meta) as r:
 
 ===
 
-```{python, title = "{{ site.handouts[0] }}"}
+```{python, title = "{{ site.data.lesson.handouts[0] }}"}
 from rasterio.plot import show
 
 with raster(varname + '.tif') as r:
@@ -192,7 +192,7 @@ with raster(varname + '.tif') as r:
 
 The warnings arise from the lack of a CRS and extent, or more generally an affine transform.
 
-```{python, title = "{{ site.handouts[0] }}"}
+```{python, title = "{{ site.data.lesson.handouts[0] }}"}
 from rasterio.crs import CRS
 from rasterio.transform import from_origin
 
@@ -209,7 +209,7 @@ transform = from_origin(
 
 Update the metadata to include a CRS and the transform, then write to file.
 
-```{python, title = "{{ site.handouts[0] }}"}
+```{python, title = "{{ site.data.lesson.handouts[0] }}"}
 meta.update({
     'crs': crs,
     'transform': transform,
@@ -222,7 +222,7 @@ with raster(varname + '.tif', 'w', **meta) as r:
 
 Now rasterio recognizes use the georeferencing when showing the image.
 
-```{python, title = "{{ site.handouts[0] }}"}
+```{python, title = "{{ site.data.lesson.handouts[0] }}"}
 with raster(varname + '.tif') as r:
     show((r, 1))
 ```
@@ -231,7 +231,7 @@ with raster(varname + '.tif') as r:
 
 More importantly, we can overlay a shapefile in the same CRS to mask the Limpopo basin.
 
-```{python, title = "{{ site.handouts[0] }}"}
+```{python, title = "{{ site.data.lesson.handouts[0] }}"}
 import geopandas as gpd
 fig, ax = plt.subplots()
 
@@ -257,7 +257,7 @@ The OPeNDAP server allows us to subset the request for data, as opposed to reque
 
 But what is the subset? It is the window of the raster matching the extent of the polygon. We also want to mask out any remaining pixels outisde the basin. The `mask()` utility will accomplish both.
 
-```{python, title = "{{ site.handouts[0] }}"}
+```{python, title = "{{ site.data.lesson.handouts[0] }}"}
 from rasterio.mask import mask
 from shapely.geometry import mapping
 
@@ -271,7 +271,7 @@ with raster(varname + '.tif') as r:
 
 Write the masked data to a new file, using the original metadata.
 
-```{python, title = "{{ site.handouts[0] }}"}
+```{python, title = "{{ site.data.lesson.handouts[0] }}"}
 with raster(varname + '_basin.tif', 'w', **meta) as r:
     r.write(masked)
 ```
@@ -280,7 +280,7 @@ with raster(varname + '_basin.tif', 'w', **meta) as r:
 
 The file we just wrote will be the source of the critical information we need for our pipeline: both the window around the basin and the explit mask around the basin.
 
-```{python, title = "{{ site.handouts[0] }}"}
+```{python, title = "{{ site.data.lesson.handouts[0] }}"}
 from rasterio.windows import get_data_window
 
 with raster(varname + '_basin.tif') as r:
@@ -310,7 +310,7 @@ type(var), var.mean()
 
 While the `x` and `y` variables provide the slices we want to request, don't forget to acconut for flipping the y-axis.
 
-```{python, title = "{{ site.handouts[0] }}"}
+```{python, title = "{{ site.data.lesson.handouts[0] }}"}
 y = variable.shape[1] - y[1], variable.shape[1] - y[0]
 var = variable[:, slice(*y), slice(*x)]
 show(var)
@@ -329,7 +329,7 @@ Finally, we have everything we need to build a time series of basin means.
 
 ===
 
-```{python, evaluate = False, title = "{{ site.handouts[0] }}"}
+```{python, evaluate = False, title = "{{ site.data.lesson.handouts[0] }}"}
 from pandas import Series
 basin_ts = Series(index = [[],[]])
 

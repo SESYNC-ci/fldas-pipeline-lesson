@@ -1,3 +1,6 @@
+---
+---
+
 <!DOCTYPE html>
 <html>
   <head>
@@ -7,8 +10,8 @@
 <title>Pipelines for Online Data</title>
 <meta name="description" content="Access Land Data Assimilation System models with OPeNDAP.">
 <link rel="canonical" href="http://cyberhelp.sesync.org/fldas-pipeline-lesson/course/archive.html">
-<link rel="stylesheet" href="https://cdn.rawgit.com/sesync-ci/lesson-style/v1.3/docs/css/default.css">
-<link rel="stylesheet" href="https://cdn.rawgit.com/sesync-ci/lesson-style/v1.3/docs/css/static.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/sesync-ci/lesson-style@v1.3/docs/css/default.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/sesync-ci/lesson-style@v1.3/docs/css/static.css">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-MML-AM_CHTML" type="text/javascript"></script>
 
   </head>
@@ -77,7 +80,7 @@ Network Land Data Assimilation System (FLDAS), also distributes them through the
 
 <p>The latest report suggests trouble in the <a href="http://riverbasins.wateractionhub.org/">Limpopo basin</a>.</p>
 
-<p class="captioned"><img src="/fldas-pipeline-lesson/images/limpopo.JPG" alt="" width="60%" /><br />
+<p class="captioned"><img src="https://cdn.jsdelivr.net/gh/sesync-ci/fldas-pipeline-lesson@v0.0/docs/images/limpopo.JPG" alt="" width="60%" /><br />
 <em>Credit: <a href="http://www.limpopo.riverawarenesskit.org/LIMPOPORAK_COM/EN/RIVER/SUB_BASIN_SUMMARIES.HTM">River Awareness Kit</a></em></p>
 
 <h2 id="earthdata">EARTHDATA</h2>
@@ -196,7 +199,7 @@ Network Land Data Assimilation System (FLDAS), also distributes them through the
 <div class="output highlighter-rouge"><div class="highlight"><pre class="highlight"><code>Out[1]: &lt;matplotlib.image.AxesImage at 0x7f3bbae10278&gt;
 </code></pre></div></div>
 
-<p><img src="/fldas-pipeline-lesson/images/dap_figure10_1.png" alt="plot of ../images/dap_figure10_1.png" /></p>
+<p><img src="https://cdn.jsdelivr.net/gh/sesync-ci/fldas-pipeline-lesson@v0.0/docs/images/dap_figure10_1.png" alt="plot of ../images/dap_figure10_1.png" /></p>
 
 <h2 id="data-alignment">Data Alignment</h2>
 
@@ -230,7 +233,7 @@ Network Land Data Assimilation System (FLDAS), also distributes them through the
     <span class="n">show</span><span class="p">(</span><span class="n">r</span><span class="o">.</span><span class="n">read</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="n">masked</span> <span class="o">=</span> <span class="bp">True</span><span class="p">))</span>
 </code></pre></div></div>
 
-<p><img src="/fldas-pipeline-lesson/images/dap_figure13_1.png" alt="plot of ../images/dap_figure13_1.png" /></p>
+<p><img src="https://cdn.jsdelivr.net/gh/sesync-ci/fldas-pipeline-lesson@v0.0/docs/images/dap_figure13_1.png" alt="plot of ../images/dap_figure13_1.png" /></p>
 
 <p>The warnings arise from the lack of a CRS and extent, or more generally an affine transform.</p>
 
@@ -262,7 +265,7 @@ Network Land Data Assimilation System (FLDAS), also distributes them through the
     <span class="n">show</span><span class="p">((</span><span class="n">r</span><span class="p">,</span> <span class="mi">1</span><span class="p">))</span>
 </code></pre></div></div>
 
-<p><img src="/fldas-pipeline-lesson/images/dap_figure16_1.png" alt="plot of ../images/dap_figure16_1.png" /></p>
+<p><img src="https://cdn.jsdelivr.net/gh/sesync-ci/fldas-pipeline-lesson@v0.0/docs/images/dap_figure16_1.png" alt="plot of ../images/dap_figure16_1.png" /></p>
 
 <p>More importantly, we can overlay a shapefile in the same CRS to mask the Limpopo basin.</p>
 
@@ -280,7 +283,7 @@ Network Land Data Assimilation System (FLDAS), also distributes them through the
 <div class="output highlighter-rouge"><div class="highlight"><pre class="highlight"><code>Out[1]: &lt;matplotlib.axes._subplots.AxesSubplot at 0x7f3b98fd2400&gt;
 </code></pre></div></div>
 
-<p><img src="/fldas-pipeline-lesson/images/dap_figure17_1.png" alt="plot of ../images/dap_figure17_1.png" /></p>
+<p><img src="https://cdn.jsdelivr.net/gh/sesync-ci/fldas-pipeline-lesson@v0.0/docs/images/dap_figure17_1.png" alt="plot of ../images/dap_figure17_1.png" /></p>
 
 <div class="language-python input highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">fig</span>
 </code></pre></div></div>
@@ -326,7 +329,7 @@ Network Land Data Assimilation System (FLDAS), also distributes them through the
 <div class="output highlighter-rouge"><div class="highlight"><pre class="highlight"><code>Out[1]: &lt;matplotlib.axes._subplots.AxesSubplot at 0x7f3bbadc2c18&gt;
 </code></pre></div></div>
 
-<p><img src="/fldas-pipeline-lesson/images/dap_figure22_1.png" alt="plot of ../images/dap_figure22_1.png" /></p>
+<p><img src="https://cdn.jsdelivr.net/gh/sesync-ci/fldas-pipeline-lesson@v0.0/docs/images/dap_figure22_1.png" alt="plot of ../images/dap_figure22_1.png" /></p>
 
 <p>Statistics calculated on a masked variable refer only to the pixesl within the basin.</p>
 
@@ -345,7 +348,7 @@ Network Land Data Assimilation System (FLDAS), also distributes them through the
 <div class="output highlighter-rouge"><div class="highlight"><pre class="highlight"><code>Out[1]: &lt;matplotlib.axes._subplots.AxesSubplot at 0x7f3b8c67de48&gt;
 </code></pre></div></div>
 
-<p><img src="/fldas-pipeline-lesson/images/dap_figure24_1.png" alt="plot of ../images/dap_figure24_1.png" /></p>
+<p><img src="https://cdn.jsdelivr.net/gh/sesync-ci/fldas-pipeline-lesson@v0.0/docs/images/dap_figure24_1.png" alt="plot of ../images/dap_figure24_1.png" /></p>
 
 <h2 id="loop-though-time">Loop though Time</h2>
 
@@ -401,7 +404,7 @@ Network Land Data Assimilation System (FLDAS), also distributes them through the
 <div class="output highlighter-rouge"><div class="highlight"><pre class="highlight"><code>Out[1]: &lt;matplotlib.axes._subplots.AxesSubplot at 0x7f3b8c5f2208&gt;
 </code></pre></div></div>
 
-<p><img src="/fldas-pipeline-lesson/images/dap_figure27_1.png" alt="plot of ../images/dap_figure27_1.png" /></p>
+<p><img src="https://cdn.jsdelivr.net/gh/sesync-ci/fldas-pipeline-lesson@v0.0/docs/images/dap_figure27_1.png" alt="plot of ../images/dap_figure27_1.png" /></p>
 
 <p class="ToS"><a href="#/slides/dap">Top of Section</a></p>
 
