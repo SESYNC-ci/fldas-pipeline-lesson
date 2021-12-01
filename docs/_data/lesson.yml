@@ -4,7 +4,7 @@ handouts:
  - worksheet.ipynb
  - data/Aqueduct_river_basins_LIMPOPO
  - data/README.md
-tag: v0.0
+tag: v0.1
 lesson: 7
 instructor: Ian Carroll
 lifecycle: beta # status for lifecycle badge
